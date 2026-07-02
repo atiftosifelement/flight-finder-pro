@@ -1,0 +1,7 @@
+MAX_BUDGET = 700
+
+LONDON_AIRPORTS = ["LHR", "LGW", "LTN", "STN", "LCY"]
+
+NEARBY_AIRPORTS = ["SEN", "BHX", "EMA", "MAN", "LPL", "BRS", "EDI"]
+
+DESTINATIONS = ["ISB", "LHE", "SKT"]
