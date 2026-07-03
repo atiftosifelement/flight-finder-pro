@@ -1,20 +1,24 @@
-# Flight Finder Pro
+# ✈️ SplitFare AI
 
-Find the cheapest flights using:
+SplitFare AI is an open-source flight search tool designed to find the cheapest routes by combining:
 
-- London and nearby airports
+- Nearby departure airports
+- Nearby arrival airports
 - Flexible dates
-- Split-ticket routes
-- Budget filters
+- Split-ticket itineraries
+- Smart route ranking
 
-## Features
+## Planned Features
 
 - Live flight search
-- Nearby airport expansion
-- Pakistan airport presets
+- Automatic split tickets
+- Flexible date search
+- Airport presets
+- Budget filters
 - Excel export
-- Streamlit dashboard
+- Fare alerts
+- AI travel recommendations
 
 ## Status
 
-🚧 Under development
+🚧 Version 0.1 – UI Development
