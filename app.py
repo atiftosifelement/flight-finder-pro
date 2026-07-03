@@ -3,13 +3,21 @@ from engine.search import generate_routes
 
 st.set_page_config(page_title="SplitFare AI", layout="wide")
 
-st.title("✈️ SplitFare AI (LIVE SEARCH)")
+st.title("✈️ SplitFare AI (LIVE FLIGHTS)")
 
 # -----------------------
-# INPUTS (NOW REAL)
+# RESET BUTTON (FIX YOUR "RETURN OPTION")
+# -----------------------
+if st.button("🔄 Reset Search"):
+    st.session_state.clear()
+    st.rerun()
+
+# -----------------------
+# INPUTS
 # -----------------------
 with st.sidebar:
-    st.header("Search Flights")
+
+    st.header("Search")
 
     origin = st.selectbox(
         "From",
@@ -21,11 +29,11 @@ with st.sidebar:
         ["Pakistan (All)", "ISB", "LHE", "KHI"]
     )
 
-    date = st.date_input("Departure Date")
+    date = st.date_input("Date")
 
     max_price = st.slider("Max Price (£)", 100, 2000, 800)
 
-    search_btn = st.button("Search Flights")
+    search = st.button("Search Flights")
 
 # -----------------------
 # STATE
@@ -34,9 +42,9 @@ if "results" not in st.session_state:
     st.session_state.results = []
 
 # -----------------------
-# SEARCH ACTION
+# SEARCH
 # -----------------------
-if search_btn:
+if search:
     st.session_state.results = generate_routes(
         origin,
         destination,
@@ -49,20 +57,20 @@ if search_btn:
 # -----------------------
 st.subheader("Results")
 
-if not st.session_state.results:
-    st.info("Search to find live flights")
-else:
+if search:
+    if not st.session_state.results:
+        st.warning("⚠️ No flights found. Try different date or airports.")
+    else:
+        st.success(f"Found {len(st.session_state.results)} flights")
 
-    for f in st.session_state.results:
+for f in st.session_state.results:
 
-        st.markdown("---")
+    st.markdown("---")
 
-        st.markdown(f"### £{f.get('price','N/A')}")
-        st.write("✈️ Route:", f.get("route"))
-        st.write("✈️ Airline:", f.get("airline"))
-        st.write("⏱ Duration:", f.get("duration"), "hours")
+    st.markdown(f"### £{f.get('price','N/A')}")
+    st.write("✈️", f.get("route"))
+    st.write("✈️", f.get("airline"))
+    st.write("⏱", f.get("duration"), "hours")
 
-        link = f.get("booking_link")
-
-        if link:
-            st.markdown(f"[🔗 Book Flight]({link})")
+    if f.get("booking_link"):
+        st.markdown(f"[🔗 Book Flight]({f['booking_link']})")
