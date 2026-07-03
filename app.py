@@ -1,21 +1,89 @@
 import streamlit as st
-from config import *
 
-st.title("Flight Finder Pro")
+st.set_page_config(
+    page_title="SplitFare AI",
+    page_icon="✈️",
+    layout="wide"
+)
 
-st.write("Basic setup working")
+st.title("✈️ SplitFare AI")
+st.caption("Find the cheapest flights using nearby airports, flexible dates and split tickets.")
 
-st.subheader("Departure Airports")
+with st.sidebar:
+    st.header("Search")
 
-st.checkbox("London Airports", True)
-st.checkbox("Nearby Airports", True)
+    departure = st.selectbox(
+        "Departure",
+        [
+            "London Airports",
+            "Nearby London",
+            "Any UK",
+            "Custom"
+        ]
+    )
 
-st.subheader("Destinations")
+    destination = st.selectbox(
+        "Destination",
+        [
+            "Pakistan",
+            "Anywhere",
+            "Custom"
+        ]
+    )
 
-for d in DESTINATIONS:
-    st.checkbox(d, True)
+    date_mode = st.radio(
+        "Date Mode",
+        [
+            "Fixed",
+            "Flexible"
+        ]
+    )
 
-st.number_input("Max Budget (£)", value=700)
+    depart = st.date_input("Departure Date")
 
-if st.button("Search Flights"):
-    st.write("Engine not connected yet — next step")
+    returning = st.date_input("Return Date")
+
+    budget = st.slider(
+        "Maximum Budget (£)",
+        100,
+        2000,
+        700
+    )
+
+    stops = st.selectbox(
+        "Maximum Stops",
+        [0,1,2]
+    )
+
+    bags = st.selectbox(
+        "Checked Bags",
+        [
+            "Cabin Only",
+            "23kg",
+            "32kg"
+        ]
+    )
+
+    search = st.button("🔍 Search Flights")
+
+st.subheader("Results")
+
+st.info("Search engine coming in Version 0.2")
+
+st.dataframe(
+    {
+        "Price":["£341","£356","£372"],
+        "Route":[
+            "LTN → MXP → ISB",
+            "STN → GYD → LHE",
+            "LGW → AUH → ISB"
+        ],
+        "Stops":[1,1,1],
+        "Journey":[
+            "14h",
+            "15h",
+            "13h"
+        ]
+    },
+    use_container_width=True
+)
