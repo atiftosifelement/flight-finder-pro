@@ -1,11 +1,22 @@
 import requests
 from config import KIWI_API_KEY
 
-LONDON_AIRPORTS = ["LHR", "LGW", "LTN", "STN"]
-PAKISTAN_AIRPORTS = ["ISB", "LHE", "KHI"]
+# -----------------------
+# AIRPORT MAPPING
+# -----------------------
+AIRPORTS = {
+    "London (All)": ["LHR", "LGW", "LTN", "STN"],
+    "Pakistan (All)": ["ISB", "LHE", "KHI"]
+}
 
 
-def search_kiwi(fly_from, fly_to, date_from, max_price=2000):
+def resolve_airports(code):
+    return AIRPORTS.get(code, [code])
+
+
+def search_kiwi(fly_from, fly_to, date_from, max_price):
+
+    url = "https://tequila-api.kiwi.com/v2/search"
 
     headers = {
         "apikey": KIWI_API_KEY
@@ -14,46 +25,40 @@ def search_kiwi(fly_from, fly_to, date_from, max_price=2000):
     params = {
         "fly_from": fly_from,
         "fly_to": fly_to,
-        "date_from": date_from,
-        "date_to": date_from,
+        "date_from": date_from.strftime("%d/%m/%Y") if hasattr(date_from, "strftime") else date_from,
+        "date_to": date_from.strftime("%d/%m/%Y") if hasattr(date_from, "strftime") else date_from,
         "curr": "GBP",
         "price_to": max_price,
         "limit": 10
     }
 
-    try:
-        r = requests.get(
-            "https://tequila-api.kiwi.com/v2/search",
-            headers=headers,
-            params=params,
-            timeout=20
-        )
+    r = requests.get(url, headers=headers, params=params, timeout=20)
 
-        data = r.json()
-        return data.get("data", [])
+    data = r.json()
 
-    except Exception as e:
-        print("API ERROR:", e)
-        return []
+    return data.get("data", [])
 
 
-def generate_routes(departure, destination, max_price=2000):
+def generate_routes(origin, destination, date, max_price):
+
+    origins = resolve_airports(origin)
+    destinations = resolve_airports(destination)
 
     results = []
 
-    for d in LONDON_AIRPORTS:
-        for a in PAKISTAN_AIRPORTS:
+    for o in origins:
+        for d in destinations:
 
-            flights = search_kiwi(d, a, "01/08/2026", max_price)
+            flights = search_kiwi(o, d, date, max_price)
 
             for f in flights:
                 results.append({
                     "price": f.get("price"),
-                    "route": f"{d} → {a}",
+                    "route": f"{o} → {d}",
                     "airline": ", ".join(f.get("airlines", [])),
                     "duration": f.get("duration", {}).get("total", 0) // 3600,
                     "booking_link": f.get("deep_link")
                 })
 
-    results.sort(key=lambda x: x["price"] if x["price"] else 999999)
+    results.sort(key=lambda x: x["price"] or 999999)
     return results
