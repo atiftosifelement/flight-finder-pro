@@ -7,11 +7,11 @@ AIRPORTS = {
 }
 
 
-def resolve(code):
-    return AIRPORTS.get(code, [code])
+def resolve(x):
+    return AIRPORTS.get(x, [x])
 
 
-def search_kiwi(fly_from, fly_to, date_from, max_price):
+def search_kiwi(fly_from, fly_to, date_from, max_stopovers, max_price):
 
     url = "https://tequila-api.kiwi.com/v2/search"
 
@@ -24,26 +24,17 @@ def search_kiwi(fly_from, fly_to, date_from, max_price):
         "date_to": date_from,
         "curr": "GBP",
         "price_to": max_price,
+        "max_stopovers": max_stopovers,
         "limit": 10
     }
 
-    try:
-        r = requests.get(url, headers=headers, params=params, timeout=20)
-        data = r.json()
+    r = requests.get(url, headers=headers, params=params, timeout=20)
+    data = r.json()
 
-        # DEBUG SAFETY
-        if "data" not in data:
-            print("KIWI RESPONSE ERROR:", data)
-            return []
-
-        return data["data"]
-
-    except Exception as e:
-        print("API FAILED:", e)
-        return []
+    return data.get("data", [])
 
 
-def generate_routes(origin, destination, date, max_price):
+def generate_routes(origin, destination, date_out, date_in, max_stops, max_price):
 
     origins = resolve(origin)
     destinations = resolve(destination)
@@ -53,16 +44,35 @@ def generate_routes(origin, destination, date, max_price):
     for o in origins:
         for d in destinations:
 
-            flights = search_kiwi(o, d, date, max_price)
+            # ONE WAY OR RETURN LOGIC
+            if date_in:
 
-            for f in flights:
-                results.append({
-                    "price": f.get("price", 0),
-                    "route": f"{o} → {d}",
-                    "airline": ", ".join(f.get("airlines", [])),
-                    "duration": f.get("duration", {}).get("total", 0) // 3600,
-                    "booking_link": f.get("deep_link")
-                })
+                out = search_kiwi(o, d, date_out, max_stops, max_price)
+                ret = search_kiwi(d, o, date_in, max_stops, max_price)
 
-    results.sort(key=lambda x: x["price"])
+                for f in out:
+                    results.append(format_flight(f, o, d, max_stops))
+
+                for f in ret:
+                    results.append(format_flight(f, d, o, max_stops))
+
+            else:
+
+                flights = search_kiwi(o, d, date_out, max_stops, max_price)
+
+                for f in flights:
+                    results.append(format_flight(f, o, d, max_stops))
+
+    results.sort(key=lambda x: x["price"] if x["price"] else 999999)
     return results
+
+
+def format_flight(f, o, d, stops):
+
+    return {
+        "price": f.get("price"),
+        "route": f"{o} → {d}",
+        "duration": f.get("duration", {}).get("total", 0) // 3600,
+        "stops": stops,
+        "booking_link": f.get("deep_link")
+    }
