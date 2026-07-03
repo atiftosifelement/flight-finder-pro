@@ -1,7 +1,7 @@
 from itertools import product
 
 # London airport system
-LONDON_AIRPORTS = ["LHR", "LGW", "LTN", "STN", "LCY", "SEN"]
+airport.csv
 
 # Pakistan airports
 PAKISTAN_AIRPORTS = ["ISB", "LHE", "KHI", "PEW", "SKT"]
