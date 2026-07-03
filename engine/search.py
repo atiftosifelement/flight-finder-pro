@@ -23,7 +23,6 @@ HUBS = [
 
 
 def format_route(route):
-    """Convert [(code,name), ...] → readable string"""
     return " → ".join([f"{name} ({code})" for code, name in route])
 
 
@@ -61,7 +60,7 @@ def generate_routes(departure: str, destination: str, max_stops: int = 1) -> Lis
                         "route": format_route([d, h, a]),
                         "stops": 1,
                         "journey": "10–16h",
-                        "reason": f"Split route via {h[1]} reduces cost via separate carriers",
+                        "reason": f"Split route via {h[1]} reduces cost",
                         "book": f"https://www.google.com/search?q=flights+{d[0]}+to+{h[0]}+to+{a[0]}"
                     })
 

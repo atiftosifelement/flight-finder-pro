@@ -13,11 +13,14 @@ st.set_page_config(
 if "selected_route" not in st.session_state:
     st.session_state.selected_route = None
 
+if "results" not in st.session_state:
+    st.session_state.results = []
+
 # -------------------------
 # HEADER
 # -------------------------
 st.title("✈️ SplitFare AI")
-st.caption("Find cheaper flights using smart split routes")
+st.caption("Smart split-ticket flight search")
 
 # -------------------------
 # SIDEBAR
@@ -37,14 +40,12 @@ with st.sidebar:
 
     max_stops = st.selectbox("Max Stops", [0, 1, 2])
 
-    budget = st.slider("Budget (£)", 100, 2000, 700)
-
-    search_clicked = st.button("🔍 Search")
+    search = st.button("🔍 Search")
 
 # -------------------------
-# RUN SEARCH
+# SEARCH
 # -------------------------
-if search_clicked:
+if search:
     st.session_state.selected_route = None
     st.session_state.results = generate_routes(departure, destination, max_stops)
 
@@ -62,18 +63,21 @@ def show_detail(route):
     st.divider()
 
     st.markdown("### 🧠 Why this route?")
-    st.write(route["reason"])
+    st.write(route.get("reason", "Optimised route"))
 
     st.divider()
 
-    st.markdown(f"[🔗 Book this route]({route['book']})")
+    book_link = route.get("book", None)
+
+    if book_link:
+        st.markdown(f"[🔗 Book this route]({book_link})")
 
     if st.button("⬅ Back"):
         st.session_state.selected_route = None
         st.rerun()
 
 # -------------------------
-# RESULTS PAGE
+# RESULTS
 # -------------------------
 if st.session_state.selected_route:
     show_detail(st.session_state.selected_route)
@@ -81,7 +85,7 @@ if st.session_state.selected_route:
 else:
     st.subheader("Results")
 
-    if "results" not in st.session_state:
+    if not st.session_state.results:
         st.info("Search to generate routes")
     else:
         for i, route in enumerate(st.session_state.results[:10]):
@@ -91,17 +95,16 @@ else:
             col1, col2, col3 = st.columns([2, 3, 1])
 
             with col1:
-                st.markdown(f"### £{route['price']}")
+                st.markdown(f"### £{route.get('price','-')}")
 
             with col2:
-                st.markdown(f"✈️ {route['route']}")
-                st.caption(f"{route['stops']} stop(s) • {route['journey']}")
+                st.markdown(f"✈️ {route.get('route','')}")
+                st.caption(f"{route.get('stops',0)} stop(s) • {route.get('journey','')}")
 
             with col3:
                 if st.button("View", key=f"v_{i}"):
                     st.session_state.selected_route = route
                     st.rerun()
 
-                st.markdown(
-                    f"[Book]({route['book']})"
-                )
+                if "book" in route:
+                    st.markdown(f"[Book]({route['book']})")
