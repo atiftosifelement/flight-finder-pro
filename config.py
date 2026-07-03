@@ -1,7 +1,5 @@
-MAX_BUDGET = 700
+# ✈️ Kiwi API Configuration
 
-LONDON_AIRPORTS = ["LHR", "LGW", "LTN", "STN", "LCY"]
+KIWI_API_KEY = "PASTE_YOUR_KIWI_API_KEY_HERE"
 
-NEARBY_AIRPORTS = ["SEN", "BHX", "EMA", "MAN", "LPL", "BRS", "EDI"]
-
-DESTINATIONS = ["ISB", "LHE", "SKT"]
+KIWI_ENDPOINT = "https://tequila-api.kiwi.com/v2/search"

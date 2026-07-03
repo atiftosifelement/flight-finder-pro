@@ -5,16 +5,11 @@ LONDON_AIRPORTS = ["LHR", "LGW", "LTN", "STN"]
 PAKISTAN_AIRPORTS = ["ISB", "LHE", "KHI"]
 
 
-def get_airports(region):
-    if "London" in region:
-        return LONDON_AIRPORTS
-    if "Pakistan" in region:
-        return PAKISTAN_AIRPORTS
-    return [region]
-
-
 def search_kiwi(fly_from, fly_to, date_from, max_price=2000):
-    headers = {"apikey": KIWI_API_KEY}
+
+    headers = {
+        "apikey": KIWI_API_KEY
+    }
 
     params = {
         "fly_from": fly_from,
@@ -26,24 +21,28 @@ def search_kiwi(fly_from, fly_to, date_from, max_price=2000):
         "limit": 10
     }
 
-    r = requests.get(
-        "https://tequila-api.kiwi.com/v2/search",
-        headers=headers,
-        params=params
-    )
+    try:
+        r = requests.get(
+            "https://tequila-api.kiwi.com/v2/search",
+            headers=headers,
+            params=params,
+            timeout=20
+        )
 
-    return r.json().get("data", [])
+        data = r.json()
+        return data.get("data", [])
+
+    except Exception as e:
+        print("API ERROR:", e)
+        return []
 
 
 def generate_routes(departure, destination, max_price=2000):
 
-    dep_airports = get_airports(departure)
-    dest_airports = get_airports(destination)
-
     results = []
 
-    for d in dep_airports:
-        for a in dest_airports:
+    for d in LONDON_AIRPORTS:
+        for a in PAKISTAN_AIRPORTS:
 
             flights = search_kiwi(d, a, "01/08/2026", max_price)
 
@@ -56,5 +55,5 @@ def generate_routes(departure, destination, max_price=2000):
                     "booking_link": f.get("deep_link")
                 })
 
-    results.sort(key=lambda x: x["price"])
+    results.sort(key=lambda x: x["price"] if x["price"] else 999999)
     return results
