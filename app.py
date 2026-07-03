@@ -68,7 +68,17 @@ with st.sidebar:
 
 st.subheader("Results")
 
-st.info("Search engine coming in Version 0.2")
+from engine.search import generate_routes
+
+if search:
+    results = generate_routes(departure, destination, stops)
+
+    st.subheader("Results")
+
+    st.dataframe(
+        results,
+        use_container_width=True
+    )
 
 st.dataframe(
     {
