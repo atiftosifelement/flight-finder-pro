@@ -1,110 +1,38 @@
 import streamlit as st
 from engine.search import generate_routes
 
-st.set_page_config(
-    page_title="SplitFare AI",
-    page_icon="✈️",
-    layout="wide"
-)
+st.set_page_config(page_title="SplitFare AI", layout="wide")
 
-# -------------------------
-# SESSION STATE
-# -------------------------
-if "selected_route" not in st.session_state:
-    st.session_state.selected_route = None
+st.title("✈️ SplitFare AI (LIVE FLIGHTS)")
+
+with st.sidebar:
+    departure = st.selectbox("From", ["London"])
+    destination = st.selectbox("To", ["Pakistan"])
+    max_price = st.slider("Max Price", 100, 2000, 800)
+
+    search = st.button("Search Flights")
 
 if "results" not in st.session_state:
     st.session_state.results = []
 
-# -------------------------
-# HEADER
-# -------------------------
-st.title("✈️ SplitFare AI")
-st.caption("Smart split-ticket flight search")
-
-# -------------------------
-# SIDEBAR
-# -------------------------
-with st.sidebar:
-    st.header("Search")
-
-    departure = st.selectbox(
-        "Departure",
-        ["London", "Nearby London", "Any UK"]
-    )
-
-    destination = st.selectbox(
-        "Destination",
-        ["Pakistan", "Anywhere"]
-    )
-
-    max_stops = st.selectbox("Max Stops", [0, 1, 2])
-
-    search = st.button("🔍 Search")
-
-# -------------------------
-# SEARCH
-# -------------------------
 if search:
-    st.session_state.selected_route = None
-    st.session_state.results = generate_routes(departure, destination, max_stops)
+    st.session_state.results = generate_routes(departure, destination, max_price)
 
-# -------------------------
-# DETAIL VIEW
-# -------------------------
-def show_detail(route):
-    st.subheader("🧭 Route Details")
+st.subheader("Results")
 
-    st.markdown(f"## 💰 £{route['price']}")
-    st.markdown(f"## ✈️ {route['route']}")
-    st.markdown(f"**Stops:** {route['stops']}")
-    st.markdown(f"**Journey:** {route['journey']}")
+if st.session_state.results:
 
-    st.divider()
+    for f in st.session_state.results:
 
-    st.markdown("### 🧠 Why this route?")
-    st.write(route.get("reason", "Optimised route"))
+        st.markdown("---")
 
-    st.divider()
+        st.markdown(f"### £{f['price']}")
+        st.write(f["route"])
+        st.write("✈️", f.get("airline", "Unknown"))
+        st.write("⏱", f.get("duration", 0), "hours")
 
-    book_link = route.get("book", None)
-
-    if book_link:
-        st.markdown(f"[🔗 Book this route]({book_link})")
-
-    if st.button("⬅ Back"):
-        st.session_state.selected_route = None
-        st.rerun()
-
-# -------------------------
-# RESULTS
-# -------------------------
-if st.session_state.selected_route:
-    show_detail(st.session_state.selected_route)
+        if f.get("booking_link"):
+            st.markdown(f"[🔗 Book Flight]({f['booking_link']})")
 
 else:
-    st.subheader("Results")
-
-    if not st.session_state.results:
-        st.info("Search to generate routes")
-    else:
-        for i, route in enumerate(st.session_state.results[:10]):
-
-            st.markdown("---")
-
-            col1, col2, col3 = st.columns([2, 3, 1])
-
-            with col1:
-                st.markdown(f"### £{route.get('price','-')}")
-
-            with col2:
-                st.markdown(f"✈️ {route.get('route','')}")
-                st.caption(f"{route.get('stops',0)} stop(s) • {route.get('journey','')}")
-
-            with col3:
-                if st.button("View", key=f"v_{i}"):
-                    st.session_state.selected_route = route
-                    st.rerun()
-
-                if "book" in route:
-                    st.markdown(f"[Book]({route['book']})")
+    st.info("Search to see live flights")

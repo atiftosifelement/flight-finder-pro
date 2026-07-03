@@ -1,68 +1,60 @@
-from typing import List, Dict
+import requests
+from config import KIWI_API_KEY
 
-LONDON = [
-    ("LHR", "London Heathrow"),
-    ("LGW", "London Gatwick"),
-    ("LTN", "London Luton"),
-    ("STN", "London Stansted"),
-]
-
-PAKISTAN = [
-    ("ISB", "Islamabad"),
-    ("LHE", "Lahore"),
-    ("KHI", "Karachi"),
-]
-
-HUBS = [
-    ("IST", "Istanbul"),
-    ("DXB", "Dubai"),
-    ("AUH", "Abu Dhabi"),
-    ("DOH", "Doha"),
-    ("GYD", "Baku"),
-]
+LONDON_AIRPORTS = ["LHR", "LGW", "LTN", "STN"]
+PAKISTAN_AIRPORTS = ["ISB", "LHE", "KHI"]
 
 
-def format_route(route):
-    return " → ".join([f"{name} ({code})" for code, name in route])
+def get_airports(region):
+    if "London" in region:
+        return LONDON_AIRPORTS
+    if "Pakistan" in region:
+        return PAKISTAN_AIRPORTS
+    return [region]
 
 
-def generate_routes(departure: str, destination: str, max_stops: int = 1) -> List[Dict]:
+def search_kiwi(fly_from, fly_to, date_from, max_price=2000):
+    headers = {"apikey": KIWI_API_KEY}
 
-    routes = []
+    params = {
+        "fly_from": fly_from,
+        "fly_to": fly_to,
+        "date_from": date_from,
+        "date_to": date_from,
+        "curr": "GBP",
+        "price_to": max_price,
+        "limit": 10
+    }
 
-    dep_airports = LONDON
-    dest_airports = PAKISTAN
+    r = requests.get(
+        "https://tequila-api.kiwi.com/v2/search",
+        headers=headers,
+        params=params
+    )
 
-    # -------------------------
-    # DIRECT ROUTES
-    # -------------------------
-    if max_stops >= 0:
-        for d in dep_airports:
-            for a in dest_airports:
-                routes.append({
-                    "price": 300 + hash(d[0] + a[0]) % 120,
-                    "route": format_route([d, a]),
-                    "stops": 0,
-                    "journey": "6–8h",
-                    "reason": "Direct flight (simple but usually more expensive)",
-                    "book": f"https://www.google.com/search?q=flights+{d[0]}+to+{a[0]}"
+    return r.json().get("data", [])
+
+
+def generate_routes(departure, destination, max_price=2000):
+
+    dep_airports = get_airports(departure)
+    dest_airports = get_airports(destination)
+
+    results = []
+
+    for d in dep_airports:
+        for a in dest_airports:
+
+            flights = search_kiwi(d, a, "01/08/2026", max_price)
+
+            for f in flights:
+                results.append({
+                    "price": f.get("price"),
+                    "route": f"{d} → {a}",
+                    "airline": ", ".join(f.get("airlines", [])),
+                    "duration": f.get("duration", {}).get("total", 0) // 3600,
+                    "booking_link": f.get("deep_link")
                 })
 
-    # -------------------------
-    # 1 STOP ROUTES
-    # -------------------------
-    if max_stops >= 1:
-        for d in dep_airports:
-            for h in HUBS:
-                for a in dest_airports:
-                    routes.append({
-                        "price": 260 + hash(d[0] + h[0] + a[0]) % 160,
-                        "route": format_route([d, h, a]),
-                        "stops": 1,
-                        "journey": "10–16h",
-                        "reason": f"Split route via {h[1]} reduces cost",
-                        "book": f"https://www.google.com/search?q=flights+{d[0]}+to+{h[0]}+to+{a[0]}"
-                    })
-
-    routes.sort(key=lambda x: x["price"])
-    return routes
+    results.sort(key=lambda x: x["price"])
+    return results
