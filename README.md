@@ -1,10 +1,20 @@
 # Flight Finder Pro
 
-A smart flight search tool that finds the cheapest routes from the UK to Pakistan using:
+Find the cheapest flights using:
 
-- London + nearby airports
+- London and nearby airports
 - Flexible dates
 - Split-ticket routes
-- Budget filtering
+- Budget filters
 
-Built with Streamlit + Python.
+## Features
+
+- Live flight search
+- Nearby airport expansion
+- Pakistan airport presets
+- Excel export
+- Streamlit dashboard
+
+## Status
+
+🚧 Under development
