@@ -1,60 +1,66 @@
-from itertools import product
+LONDON = [
+    ("LHR", "London Heathrow"),
+    ("LGW", "London Gatwick"),
+    ("LTN", "London Luton"),
+    ("STN", "London Stansted"),
+]
 
-# London airport system
-airport.csv
+PAKISTAN = [
+    ("ISB", "Islamabad"),
+    ("LHE", "Lahore"),
+    ("KHI", "Karachi"),
+]
 
-# Pakistan airports
-PAKISTAN_AIRPORTS = ["ISB", "LHE", "KHI", "PEW", "SKT"]
-
-def get_airports(region: str):
-    region = region.lower()
-
-    if "london" in region:
-        return LONDON_AIRPORTS
-
-    if "pakistan" in region:
-        return PAKISTAN_AIRPORTS
-
-    return [region]
+HUBS = [
+    ("IST", "Istanbul"),
+    ("DXB", "Dubai"),
+    ("AUH", "Abu Dhabi"),
+    ("DOH", "Doha"),
+    ("GYD", "Baku"),
+]
 
 
-def generate_routes(departure: str, destination: str, max_stops: int = 1):
-    """
-    Generates simple split routes.
-    This is NOT real flight data yet — just logic engine.
-    """
+def format_route(route_list):
+    return " → ".join([f"{name} ({code})" for code, name in route_list])
 
-    dep_airports = get_airports(departure)
-    dest_airports = get_airports(destination)
+
+def generate_routes(departure, destination, max_stops=1):
 
     routes = []
 
-    # direct routes (0 stops)
+    dep_airports = LONDON
+    dest_airports = PAKISTAN
+
+    # ------------------------
+    # Direct flights
+    # ------------------------
     if max_stops >= 0:
         for d in dep_airports:
             for a in dest_airports:
                 routes.append({
-                    "price": 300 + hash(d + a) % 120,
-                    "route": f"{d} → {a}",
+                    "price": 300 + hash(d[0] + a[0]) % 120,
+                    "route": format_route([d, a]),
                     "stops": 0,
-                    "journey": "6-8h"
+                    "journey": "6–8h",
+                    "reason": "Direct routing (simple but usually more expensive)",
+                    "book": f"https://www.google.com/search?q=flights+{d[0]}+to+{a[0]}"
                 })
 
-    # 1-stop routes (split logic)
+    # ------------------------
+    # 1-stop routes
+    # ------------------------
     if max_stops >= 1:
-        hubs = ["DXB", "AUH", "IST", "DOH", "GYD"]
-
         for d in dep_airports:
-            for h in hubs:
+            for h in HUBS:
                 for a in dest_airports:
                     routes.append({
-                        "price": 280 + hash(d + h + a) % 150,
-                        "route": f"{d} → {h} → {a}",
+                        "price": 260 + hash(d[0] + h[0] + a[0]) % 160,
+                        "route": format_route([d, h, a]),
                         "stops": 1,
-                        "journey": "10-16h"
+                        "journey": "10–16h",
+                        "reason": f"Split ticket via {h[1]} reduces pricing via separate carriers",
+                        "book": f"https://www.google.com/search?q=flights+{d[0]}+to+{h[0]}+to+{a[0]}"
                     })
 
-    # sort cheapest first
     routes.sort(key=lambda x: x["price"])
-
     return routes

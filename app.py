@@ -98,3 +98,7 @@ else:
                     if st.button("View Details", key=f"btn_{i}"):
                         st.session_state.selected_route = route
                         st.rerun()
+                st.markdown(
+    f"[🔗 Book Flight]({route['book']})",
+    unsafe_allow_html=True
+)                   
